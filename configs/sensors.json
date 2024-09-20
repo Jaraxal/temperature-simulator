@@ -1,0 +1,32 @@
+{
+  "config": {
+    "totalReadings": 50,
+    "startingTemp": 20.0,
+    "maxTempIncrease": 30.0,
+    "tempFluctuation": 3.0,
+    "minTemp": -50.0,
+    "maxTemp": 100.0,
+    "outputFileName": "output/temperature-readings",
+    "simulate": true
+  },
+  "sensors": [
+    {
+      "name": "SensorA",
+      "id": "001",
+      "version": "v1.0",
+      "location": "LocationA"
+    },
+    {
+      "name": "SensorB",
+      "id": "002",
+      "version": "v1.1",
+      "location": "LocationB"
+    },
+    {
+      "name": "SensorC",
+      "id": "003",
+      "version": "v2.0",
+      "location": "LocationC"
+    }
+  ]
+}
