@@ -1,0 +1,62 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+
+# Executable binary (for the CLI app)
+bin/
+
+# Test binary
+*.test
+
+# Output of the 'go build' and 'go test' commands
+/build/
+*.out
+
+# Go modules
+/go.sum
+/go.mod
+
+# Dependency directories (vendor folder and modules cache)
+vendor/
+.gomodcache/
+.gopath/
+
+# Logs and debugging
+*.log
+*.trace
+
+# Output files
+/logs/*
+/output/*
+/tmp/*
+
+# IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+
+# Golangci-lint
+golangci-lint-report.out
+
+# Coverage results
+coverage.out
+*.cov
+*.coverage
+profile.out
+
+# Config files (if sensitive)
+.env
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+*.orig
+
+# Git specific files
+!.gitignore
