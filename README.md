@@ -131,7 +131,6 @@ The simulator is configured via a JSON file that specifies both the simulation p
 - `minTemp`: The minimum allowable temperature.
 - `maxTemp`: The maximum allowable temperature.
 - `outputFileName`: The base name of the output file (without extension).
-- `outputFormat`: The output file format ("csv" or "json").
 - `simulate`: If true, the simulator runs without actual time delays.
 
 ### Sensors Configuration
