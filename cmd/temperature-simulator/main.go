@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"path/filepath"
 
 	"temperature-simulator/internal/simulator"
 )
@@ -42,15 +41,7 @@ func main() {
 		log.Fatalf("Error generating temperature readings: %v", err)
 	}
 
-	// Save data to file.
-	outputFileName := config.OutputFileName
-	if outputFileName == "" {
-		outputFileName = "temperature-readings.json"
-	}
-
-	outputFilePath := filepath.Join("..", "output", outputFileName)
-
-	if err := simulator.SaveToJSON(data, outputFilePath); err != nil {
+	if err := simulator.SaveToJSON(data, config.OutputFileName); err != nil {
 		log.Fatalf("Error saving to JSON: %v", err)
 	}
 }
