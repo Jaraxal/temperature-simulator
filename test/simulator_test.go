@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,67 +12,25 @@ import (
 )
 
 func TestLoadConfigAndSensors(t *testing.T) {
-	// Valid configuration JSON content.
-	validConfigJSON := `{
-        "config": {
-            "totalReadings": 5,
-            "startingTemp": 20.0,
-            "maxTempIncrease": 30.0,
-            "tempFluctuation": 3.0,
-            "minTemp": -50.0,
-            "maxTemp": 100.0,
-            "outputFileName": "temperature_readings",
-            "outputFormat": "json",
-            "simulate": true
-        },
-        "sensors": [
-            {"name": "SensorA", "id": "001", "version": "v1.0", "location": "LocationA"},
-            {"name": "SensorB", "id": "002", "version": "v1.1", "location": "LocationB"}
-        ]
-    }`
-
-	// Create a temporary file with valid configuration JSON.
-	validFile, err := os.CreateTemp("", "valid_config_*.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(validFile.Name())
-
-	if _, err := validFile.Write([]byte(validConfigJSON)); err != nil {
-		validFile.Close()
-		t.Fatal(err)
-	}
-	validFile.Close()
+	// Define the path to the external JSON configuration file.
+	configFilePath := filepath.Join("..", "configs", "test_sensors.json")
 
 	// Test loading valid configuration and sensors.
-	sensorConfig, err := simulator.LoadConfigAndSensors(validFile.Name())
+	sensorConfig, err := simulator.LoadConfigAndSensors(configFilePath)
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("Expected no error, got %v", err)
 	}
 	if len(sensorConfig.Sensors) != 2 {
 		t.Errorf("Expected 2 sensors, got %d", len(sensorConfig.Sensors))
 	}
 
-	// Invalid configuration JSON content.
-	invalidConfigJSON := `invalid json`
-
-	// Create a temporary file with invalid configuration JSON.
-	invalidFile, err := os.CreateTemp("", "invalid_config_*.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.Remove(invalidFile.Name())
-
-	if _, err := invalidFile.Write([]byte(invalidConfigJSON)); err != nil {
-		invalidFile.Close()
-		t.Fatal(err)
-	}
-	invalidFile.Close()
+	// Test with an invalid configuration file path.
+	invalidConfigFilePath := filepath.Join("..", "configs", "nonexistent.json")
 
 	// Test loading invalid configuration.
-	_, err = simulator.LoadConfigAndSensors(invalidFile.Name())
+	_, err = simulator.LoadConfigAndSensors(invalidConfigFilePath)
 	if err == nil {
-		t.Error("Expected error for invalid JSON, got nil")
+		t.Error("Expected error for invalid configuration file path, got nil")
 	}
 }
 
@@ -112,7 +71,7 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		config.Simulate,
 	)
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("Expected no error, got %v", err)
 	}
 
 	expectedDataPoints := config.TotalReadings * len(sensors)
@@ -160,7 +119,7 @@ func TestSaveToJSON(t *testing.T) {
 	tmpfile.Close()
 
 	if err := simulator.SaveToJSON(data, tmpfile.Name()); err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("Expected no error, got %v", err)
 	}
 
 	// Read the file and check content.

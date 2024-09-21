@@ -21,12 +21,6 @@
       "id": "002",
       "version": "v1.1",
       "location": "LocationB"
-    },
-    {
-      "name": "SensorC",
-      "id": "003",
-      "version": "v2.0",
-      "location": "LocationC"
     }
   ]
 }
