@@ -6,7 +6,7 @@
     "tempFluctuation": 3.0,
     "minTemp": -50.0,
     "maxTemp": 100.0,
-    "outputFileName": "temperature-readings",
+    "outputFileName": "temperature-readings.json",
     "simulate": true
   },
   "sensors": [

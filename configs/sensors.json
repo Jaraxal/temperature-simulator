@@ -1,12 +1,12 @@
 {
   "config": {
-    "totalReadings": 50,
+    "totalReadings": 5000,
     "startingTemp": 20.0,
     "maxTempIncrease": 30.0,
     "tempFluctuation": 3.0,
     "minTemp": -50.0,
     "maxTemp": 100.0,
-    "outputFileName": "temperature-readings",
+    "outputFileName": "temperature-readings.json",
     "simulate": true
   },
   "sensors": [
