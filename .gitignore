@@ -6,7 +6,7 @@
 *.bin
 
 # Executable binary (for the CLI app)
-bin/
+bin/*
 
 # Test binary
 *.test
