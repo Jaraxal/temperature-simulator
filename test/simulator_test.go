@@ -4,8 +4,10 @@
 package test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,35 +16,61 @@ import (
 	"temperature-simulator/internal/simulator"
 )
 
+// captureLogs is a helper function that captures logs generated during the execution
+// of the provided function. It returns the captured logs as a string.
+func captureLogs(f func()) string {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)      // Redirect log output to buffer
+	f()                      // Execute the function to capture its logs
+	log.SetOutput(os.Stderr) // Restore the default log output
+	return buf.String()
+}
+
 // TestLoadConfigAndSensors tests the loading of sensor configurations from a JSON file.
-// It verifies that the function correctly loads valid configurations and handles invalid
-// file paths as expected.
+// It verifies that the function correctly loads valid configurations, handles invalid file paths,
+// and that appropriate logging occurs.
 func TestLoadConfigAndSensors(t *testing.T) {
 	// Define the path to the external JSON configuration file.
 	configFilePath := filepath.Join("..", "configs", "test_sensors.json")
 
-	// Test loading valid configuration and sensors.
-	sensorConfig, err := simulator.LoadConfigAndSensors(configFilePath)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
-	if len(sensorConfig.Sensors) != 2 {
-		t.Errorf("Expected 2 sensors, got %d", len(sensorConfig.Sensors))
+	// Capture logs during valid configuration loading.
+	logOutput := captureLogs(func() {
+		// Test loading valid configuration and sensors.
+		sensorConfig, err := simulator.LoadConfigAndSensors(configFilePath)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if len(sensorConfig.Sensors) != 2 {
+			t.Errorf("Expected 2 sensors, got %d", len(sensorConfig.Sensors))
+		}
+	})
+
+	// Check if log contains a message about loading sensors.
+	if !strings.Contains(logOutput, "Loaded 2 sensors from configuration") {
+		t.Errorf("Expected log message about loading 2 sensors, but got: %s", logOutput)
 	}
 
 	// Test with an invalid configuration file path.
 	invalidConfigFilePath := filepath.Join("..", "configs", "nonexistent.json")
 
-	// Test loading invalid configuration.
-	_, err = simulator.LoadConfigAndSensors(invalidConfigFilePath)
-	if err == nil {
-		t.Error("Expected error for invalid configuration file path, got nil")
+	// Capture logs for invalid configuration loading.
+	logOutput = captureLogs(func() {
+		_, err := simulator.LoadConfigAndSensors(invalidConfigFilePath)
+		if err == nil {
+			t.Error("Expected error for invalid configuration file path, got nil")
+		}
+	})
+
+	// Check if log contains an error message about file loading failure.
+	if !strings.Contains(logOutput, "Error opening configuration file") {
+		t.Errorf("Expected log message about error opening configuration file, but got: %s", logOutput)
 	}
 }
 
 // TestGenerateTemperatureReadings tests the generation of temperature readings
 // for a given set of sensors and configuration. It verifies that the correct number
-// of readings are generated, and that the temperatures fall within the expected range.
+// of readings are generated, that the temperatures fall within the expected range,
+// and that appropriate logging occurs.
 func TestGenerateTemperatureReadings(t *testing.T) {
 	sensors := []simulator.Sensor{
 		{
@@ -69,39 +97,50 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		Simulate:        true, // Use simulate mode to avoid actual sleeping
 	}
 
-	// Generate temperature readings.
-	data, err := simulator.GenerateTemperatureReadings(
-		sensors,
-		config.TotalReadings,
-		config.StartingTemp,
-		config.MaxTempIncrease,
-		config.TempFluctuation,
-		config.MinTemp,
-		config.MaxTemp,
-		config.Simulate,
-	)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
-
-	// Verify the number of generated readings matches expectations.
-	expectedDataPoints := config.TotalReadings * len(sensors)
-	if len(data) != expectedDataPoints {
-		t.Errorf("Expected %d data points, got %d", expectedDataPoints, len(data))
-	}
-
-	// Verify the generated temperatures are within the allowed range.
-	for _, reading := range data {
-		tempValue := float64(reading.Temperature)
-		if tempValue < config.MinTemp || tempValue > config.MaxTemp {
-			t.Errorf("Temperature out of bounds: %.2f", reading.Temperature)
+	// Capture logs during temperature reading generation.
+	logOutput := captureLogs(func() {
+		// Generate temperature readings.
+		data, err := simulator.GenerateTemperatureReadings(
+			sensors,
+			config.TotalReadings,
+			config.StartingTemp,
+			config.MaxTempIncrease,
+			config.TempFluctuation,
+			config.MinTemp,
+			config.MaxTemp,
+			config.Simulate,
+		)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
 		}
+
+		// Verify the number of generated readings matches expectations.
+		expectedDataPoints := config.TotalReadings * len(sensors)
+		if len(data) != expectedDataPoints {
+			t.Errorf("Expected %d data points, got %d", expectedDataPoints, len(data))
+		}
+
+		// Verify the generated temperatures are within the allowed range.
+		for _, reading := range data {
+			tempValue := float64(reading.Temperature)
+			if tempValue < config.MinTemp || tempValue > config.MaxTemp {
+				t.Errorf("Temperature out of bounds: %.2f", reading.Temperature)
+			}
+		}
+	})
+
+	// Check if log contains a message about temperature generation.
+	if !strings.Contains(logOutput, "Starting temperature generation") {
+		t.Errorf("Expected log message about starting temperature generation, but got: %s", logOutput)
+	}
+	if !strings.Contains(logOutput, "Completed temperature generation") {
+		t.Errorf("Expected log message about completed temperature generation, but got: %s", logOutput)
 	}
 }
 
 // TestSaveToJSON tests saving temperature readings to a JSON file.
 // It verifies that the data is correctly written to the file in the expected format
-// and that each line of the file corresponds to a valid JSON object.
+// and that appropriate logging occurs.
 func TestSaveToJSON(t *testing.T) {
 	data := []simulator.TemperatureReading{
 		{
@@ -134,9 +173,20 @@ func TestSaveToJSON(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	tmpfile.Close()
 
-	// Save the data to the JSON file.
-	if err := simulator.SaveToJSON(data, tmpfile.Name()); err != nil {
-		t.Fatalf("Expected no error, got %v", err)
+	// Capture logs during data saving.
+	logOutput := captureLogs(func() {
+		// Save the data to the JSON file.
+		if err := simulator.SaveToJSON(data, tmpfile.Name()); err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+	})
+
+	// Check if log contains a message about saving data.
+	if !strings.Contains(logOutput, "Saving data to JSON file") {
+		t.Errorf("Expected log message about saving data to JSON file, but got: %s", logOutput)
+	}
+	if !strings.Contains(logOutput, "Data successfully saved") {
+		t.Errorf("Expected log message about successful data saving, but got: %s", logOutput)
 	}
 
 	// Read the file and check the content.

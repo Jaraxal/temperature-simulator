@@ -9,7 +9,52 @@ import (
 	"strings"
 )
 
-// Config holds the configuration settings for the temperature simulation.
+// SetupLogger configures the global logger based on the specified log level and output destination.
+// The log level can be one of: "debug", "info", "warn", "error".
+// The log output can be either "stdout" or a file path specified via command-line or configuration.
+//
+// Parameters:
+//   - logLevel: The desired log level for the application.
+//   - logOutput: The destination for the logs, either "stdout" or a file path.
+//
+// Returns:
+//   - An error if the log level or log output is invalid, or nil if successful.
+func SetupLogger(logLevel, logOutput string) error {
+	// Determine the log output destination (stdout or a file).
+	var output *os.File
+	if logOutput == "stdout" {
+		output = os.Stdout
+	} else {
+		// Open or create the log file.
+		var err error
+		output, err = os.OpenFile(logOutput, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return fmt.Errorf("unable to open log file: %w", err)
+		}
+	}
+
+	log.SetOutput(output)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile) // Add timestamp and file info to logs.
+
+	// Set the log level.
+	switch strings.ToLower(logLevel) {
+	case "debug":
+		log.SetPrefix("DEBUG: ")
+	case "info":
+		log.SetPrefix("INFO: ")
+	case "warn":
+		log.SetPrefix("WARN: ")
+	case "error":
+		log.SetPrefix("ERROR: ")
+	default:
+		return fmt.Errorf("unknown log level: %s", logLevel)
+	}
+
+	log.Printf("Logger initialized with level: %s, output: %s", logLevel, logOutput)
+	return nil
+}
+
+// Config holds the configuration settings for the temperature simulation, including log file path.
 // This struct defines the core parameters for running the simulation, such as the number of readings,
 // initial temperature, temperature fluctuations, and the simulation mode.
 type Config struct {
@@ -21,6 +66,7 @@ type Config struct {
 	MaxTemp         float64 `json:"maxTemp"`         // The maximum allowable temperature value.
 	OutputFileName  string  `json:"outputFileName"`  // Name of the file where simulation results will be saved.
 	Simulate        bool    `json:"simulate"`        // If true, the simulation runs over real time; otherwise, it runs as fast as possible.
+	LogFilePath     string  `json:"logFilePath"`     // Path to the log file, if not provided via command-line.
 }
 
 // Sensor holds metadata information about a specific sensor used in the simulation.
@@ -57,11 +103,9 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Printf("Error opening configuration file: %v", err)
-		// Return an error if the file cannot be opened.
 		return nil, fmt.Errorf("unable to open configuration file: %w", err)
 	}
 	defer func() {
-		// Ensure the file is closed properly after reading.
 		if err := file.Close(); err != nil {
 			log.Printf("Error closing configuration file: %v", err)
 		}
@@ -75,7 +119,6 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(&sensorConfig); err != nil {
 		log.Printf("Error decoding JSON configuration: %v", err)
-		// Return an error if the JSON structure is invalid.
 		return nil, fmt.Errorf("error decoding configuration JSON: %w", err)
 	}
 
@@ -85,39 +128,7 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 		return nil, fmt.Errorf("no sensors found in configuration")
 	}
 
-	// Log the number of sensors loaded.
 	log.Printf("Loaded %d sensors from configuration", len(sensorConfig.Sensors))
 
-	// Return the decoded configuration and sensor list.
 	return &sensorConfig, nil
-}
-
-// SetupLogger configures the global logger based on the specified log level.
-// The log level can be one of: "debug", "info", "warn", "error".
-//
-// Parameters:
-//   - logLevel: The desired log level for the application.
-//
-// Returns:
-//   - An error if the log level is invalid, or nil if successful.
-func SetupLogger(logLevel string) error {
-	var flags int = log.Ldate | log.Ltime | log.Lshortfile // Include date, time, and file in log output.
-
-	log.SetFlags(flags)
-
-	switch strings.ToLower(logLevel) {
-	case "debug":
-		log.SetPrefix("DEBUG: ")
-	case "info":
-		log.SetPrefix("INFO: ")
-	case "warn":
-		log.SetPrefix("WARN: ")
-	case "error":
-		log.SetPrefix("ERROR: ")
-	default:
-		return fmt.Errorf("unknown log level: %s", logLevel)
-	}
-
-	log.Printf("Logger initialized with level: %s", logLevel)
-	return nil
 }
