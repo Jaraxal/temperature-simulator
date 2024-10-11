@@ -1,6 +1,8 @@
 # Temperature Simulator
 
-A Go-based temperature simulator that generates temperature readings for a set of sensors. The simulator can output data in CSV or JSON formats and is configurable via a JSON configuration file.
+A Go-based temperature simulator that generates temperature readings for a set of sensors. The output of the simulator is intended to represent temperature data as one might expect to find in data center racks or build HVAC systems.  The ultimate goal is to load the data into a tool like Elasticsearch for use with Dashboards, Detection Rules and Machine Learning.
+
+This project was created as part of an effort to learn Go, as a long time-time Perl, Python and Node.js programmer. I would appreciate constructive feedback.
 
 ## Table of Contents
 
@@ -43,7 +45,7 @@ A Go-based temperature simulator that generates temperature readings for a set o
 
 ### Prerequisites
 
-Go 1.20 or higher installed on your system. You can download it from the official website.
+Go 1.20 or higher installed on your system. You can download it from the official website or use `brew` on Mac OS.
 
 ### Clone the Repository
 
@@ -151,10 +153,13 @@ temperature-simulator/
 │       └── main.go
 ├── configs/
 │   └── sensors.json
+│   └── test_sensors.json
 ├── internal/
 │   └── simulator/
 │       ├── config.go
 │       └── simulator.go
+├── logs/
+├── output/
 ├── test/
 │   └── simulator_test.go
 ├── go.mod
