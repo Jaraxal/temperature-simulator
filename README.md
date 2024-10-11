@@ -79,6 +79,9 @@ You can specify a different configuration file using the -sensor_config flag:
 ### Command-Line Options
 
 - `-sensor_config`: Path to the sensor configuration JSON file. Default is configs/sensors.json.
+- `-log_output`: Specify where to write log output (stdout for terminal or a file path).
+- `-log_level`: Log level (e.g., debug, info, warn, error).
+- `-output`: Override the output file name specified in the configuration file.
 
 ## Configuration
 
@@ -97,9 +100,9 @@ The simulator is configured via a JSON file that specifies both the simulation p
     "tempFluctuation": 3.0,
     "minTemp": -50.0,
     "maxTemp": 100.0,
-    "outputFileName": "temperature_readings",
-    "outputFormat": "json",
-    "simulate": true
+    "outputFileName": "output/temperature-readings.json",
+    "simulate": true,
+    "logFilePath": "logs/temperature-simulator.log"
   },
   "sensors": [
     {
@@ -132,8 +135,9 @@ The simulator is configured via a JSON file that specifies both the simulation p
 - `tempFluctuation`: The maximum fluctuation in temperature per reading.
 - `minTemp`: The minimum allowable temperature.
 - `maxTemp`: The maximum allowable temperature.
-- `outputFileName`: The base name of the output file (without extension).
+- `outputFileName`: The file name of the json output file.
 - `simulate`: If true, the simulator runs without actual time delays.
+- `logFilePath`: The file name of the log file output.
 
 ### Sensors Configuration
 
