@@ -11,10 +11,11 @@ import (
 // It loads the sensor configuration, generates temperature readings,
 // and saves the results in a JSON file.
 func main() {
-	// Parse command-line flags for configuration file, log level, and log output.
+	// Parse command-line flags for configuration file, log level, log output, and output file.
 	sensorConfigFile := flag.String("sensor_config", "configs/sensors.json", "Path to the sensor configuration JSON file")
 	logLevel := flag.String("log_level", "info", "Log level (debug, info, warn, error)")
 	logOutput := flag.String("log_output", "", "Log output ('stdout' or file path), overrides config file log path")
+	outputFile := flag.String("output", "", "Output file for temperature readings, overrides config file output file")
 	flag.Parse()
 
 	// Load the configuration and sensors from the JSON file.
@@ -30,6 +31,11 @@ func main() {
 		if *logOutput == "" {
 			*logOutput = "stdout" // Default to stdout if not specified in either place.
 		}
+	}
+
+	// Use the output file from the command-line flag, if provided, otherwise use the one from the config.
+	if *outputFile != "" {
+		config.OutputFileName = *outputFile
 	}
 
 	// Setup logger based on the log level and output destination.
@@ -60,7 +66,7 @@ func main() {
 	}
 	log.Printf("Generated %d temperature readings", len(data))
 
-	// Save generated temperature readings to a JSON file.
+	// Save generated temperature readings to the output file.
 	log.Printf("Saving temperature readings to %s", config.OutputFileName)
 	if err := simulator.SaveToJSON(data, config.OutputFileName); err != nil {
 		log.Fatalf("Error saving to JSON: %v", err)

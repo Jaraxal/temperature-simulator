@@ -17,19 +17,30 @@ import (
 )
 
 // captureLogs is a helper function that captures logs generated during the execution
-// of the provided function. It returns the captured logs as a string.
+// of the provided function. It sets up log output to a buffer to capture logs, ensuring
+// that any logs produced during the test can be properly validated.
 func captureLogs(f func()) string {
 	var buf bytes.Buffer
-	log.SetOutput(&buf)      // Redirect log output to buffer
-	f()                      // Execute the function to capture its logs
-	log.SetOutput(os.Stderr) // Restore the default log output
+	origLogger := log.Default()              // Store the original logger
+	log.SetOutput(&buf)                      // Redirect log output to buffer
+	defer log.SetOutput(origLogger.Writer()) // Restore original logger after the test
+
+	// Execute the provided function.
+	f()
+
+	// Return the captured logs as a string.
 	return buf.String()
 }
 
 // TestLoadConfigAndSensors tests the loading of sensor configurations from a JSON file.
 // It verifies that the function correctly loads valid configurations, handles invalid file paths,
-// and that appropriate logging occurs.
+// and logs the appropriate messages.
 func TestLoadConfigAndSensors(t *testing.T) {
+	// Set up the logger for capturing logs. Ensure that logs are written to stdout during the test.
+	if err := simulator.SetupLogger("info", "stdout"); err != nil {
+		t.Fatalf("Failed to set up logger: %v", err)
+	}
+
 	// Define the path to the external JSON configuration file.
 	configFilePath := filepath.Join("..", "configs", "test_sensors.json")
 
@@ -70,8 +81,14 @@ func TestLoadConfigAndSensors(t *testing.T) {
 // TestGenerateTemperatureReadings tests the generation of temperature readings
 // for a given set of sensors and configuration. It verifies that the correct number
 // of readings are generated, that the temperatures fall within the expected range,
-// and that appropriate logging occurs.
+// and that appropriate logging occurs during the generation process.
 func TestGenerateTemperatureReadings(t *testing.T) {
+	// Set up the logger for capturing logs.
+	if err := simulator.SetupLogger("info", "stdout"); err != nil {
+		t.Fatalf("Failed to set up logger: %v", err)
+	}
+
+	// Create a set of sensor objects to simulate.
 	sensors := []simulator.Sensor{
 		{
 			Name:     "SensorA",
@@ -87,6 +104,7 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		},
 	}
 
+	// Define the configuration for generating temperature readings.
 	config := simulator.Config{
 		TotalReadings:   10,
 		StartingTemp:    20.0,
@@ -129,7 +147,7 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		}
 	})
 
-	// Check if log contains a message about temperature generation.
+	// Check if log contains a message about starting and completing temperature generation.
 	if !strings.Contains(logOutput, "Starting temperature generation") {
 		t.Errorf("Expected log message about starting temperature generation, but got: %s", logOutput)
 	}
@@ -140,8 +158,14 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 
 // TestSaveToJSON tests saving temperature readings to a JSON file.
 // It verifies that the data is correctly written to the file in the expected format
-// and that appropriate logging occurs.
+// and that appropriate logging occurs during the saving process.
 func TestSaveToJSON(t *testing.T) {
+	// Set up the logger for capturing logs.
+	if err := simulator.SetupLogger("info", "stdout"); err != nil {
+		t.Fatalf("Failed to set up logger: %v", err)
+	}
+
+	// Define the temperature readings to be saved.
 	data := []simulator.TemperatureReading{
 		{
 			Time:        "2023-10-01 12:00:00",
@@ -170,7 +194,7 @@ func TestSaveToJSON(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpfile.Name())
+	defer os.Remove(tmpfile.Name()) // Ensure the temp file is removed after the test.
 	tmpfile.Close()
 
 	// Capture logs during data saving.

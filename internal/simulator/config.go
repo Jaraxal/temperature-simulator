@@ -128,6 +128,7 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 		return nil, fmt.Errorf("no sensors found in configuration")
 	}
 
+	// Log a message after loading the sensors successfully
 	log.Printf("Loaded %d sensors from configuration", len(sensorConfig.Sensors))
 
 	return &sensorConfig, nil
