@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 // Config holds the configuration settings for the temperature simulation.
@@ -55,6 +56,7 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 	// Open the configuration file for reading.
 	file, err := os.Open(filename)
 	if err != nil {
+		log.Printf("Error opening configuration file: %v", err)
 		// Return an error if the file cannot be opened.
 		return nil, fmt.Errorf("unable to open configuration file: %w", err)
 	}
@@ -72,15 +74,50 @@ func LoadConfigAndSensors(filename string) (*SensorConfig, error) {
 	var sensorConfig SensorConfig
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(&sensorConfig); err != nil {
+		log.Printf("Error decoding JSON configuration: %v", err)
 		// Return an error if the JSON structure is invalid.
 		return nil, fmt.Errorf("error decoding configuration JSON: %w", err)
 	}
 
 	// Ensure that at least one sensor is defined in the configuration.
 	if len(sensorConfig.Sensors) == 0 {
+		log.Printf("No sensors found in configuration")
 		return nil, fmt.Errorf("no sensors found in configuration")
 	}
 
+	// Log the number of sensors loaded.
+	log.Printf("Loaded %d sensors from configuration", len(sensorConfig.Sensors))
+
 	// Return the decoded configuration and sensor list.
 	return &sensorConfig, nil
+}
+
+// SetupLogger configures the global logger based on the specified log level.
+// The log level can be one of: "debug", "info", "warn", "error".
+//
+// Parameters:
+//   - logLevel: The desired log level for the application.
+//
+// Returns:
+//   - An error if the log level is invalid, or nil if successful.
+func SetupLogger(logLevel string) error {
+	var flags int = log.Ldate | log.Ltime | log.Lshortfile // Include date, time, and file in log output.
+
+	log.SetFlags(flags)
+
+	switch strings.ToLower(logLevel) {
+	case "debug":
+		log.SetPrefix("DEBUG: ")
+	case "info":
+		log.SetPrefix("INFO: ")
+	case "warn":
+		log.SetPrefix("WARN: ")
+	case "error":
+		log.SetPrefix("ERROR: ")
+	default:
+		return fmt.Errorf("unknown log level: %s", logLevel)
+	}
+
+	log.Printf("Logger initialized with level: %s", logLevel)
+	return nil
 }

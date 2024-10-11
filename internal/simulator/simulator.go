@@ -76,6 +76,9 @@ func GenerateTemperatureReadings(
 	simulate bool,
 ) ([]TemperatureReading, error) {
 
+	// Log the start of temperature generation
+	log.Printf("Starting temperature generation for %d sensors with %d readings each", len(sensors), totalReadings)
+
 	// Initialize temperature values for each sensor.
 	sensorTemps := make([]float64, len(sensors))
 	for i := range sensors {
@@ -143,6 +146,7 @@ func GenerateTemperatureReadings(
 		}
 	}
 
+	log.Printf("Completed temperature generation. Total readings generated: %d", len(data))
 	return data, nil
 }
 
@@ -156,8 +160,10 @@ func GenerateTemperatureReadings(
 // Returns an error if the file cannot be created or written to.
 func SaveToJSON(data []TemperatureReading, filename string) error {
 	// Create the output file for writing.
+	log.Printf("Saving data to JSON file: %s", filename)
 	file, err := os.Create(filename)
 	if err != nil {
+		log.Printf("Error creating file: %v", err)
 		return fmt.Errorf("error creating JSON file: %w", err)
 	}
 	defer func() {
@@ -179,18 +185,21 @@ func SaveToJSON(data []TemperatureReading, filename string) error {
 		// Marshal the reading to JSON format.
 		jsonData, err := json.Marshal(reading)
 		if err != nil {
+			log.Printf("Error encoding JSON: %v", err)
 			return fmt.Errorf("error encoding JSON data: %w", err)
 		}
 
 		// Write the JSON data followed by a newline.
 		if _, err := writer.Write(jsonData); err != nil {
+			log.Printf("Error writing JSON data: %v", err)
 			return fmt.Errorf("error writing JSON data: %w", err)
 		}
 		if err := writer.WriteByte('\n'); err != nil {
+			log.Printf("Error writing newline: %v", err)
 			return fmt.Errorf("error writing newline: %w", err)
 		}
 	}
 
-	fmt.Printf("Data successfully saved to %s\n", filename)
+	log.Printf("Data successfully saved to %s", filename)
 	return nil
 }
