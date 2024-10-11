@@ -1,3 +1,6 @@
+// Package test contains unit tests for the simulator package, which includes
+// functionality for loading sensor configurations, generating temperature readings,
+// and saving data to JSON files.
 package test
 
 import (
@@ -11,6 +14,9 @@ import (
 	"temperature-simulator/internal/simulator"
 )
 
+// TestLoadConfigAndSensors tests the loading of sensor configurations from a JSON file.
+// It verifies that the function correctly loads valid configurations and handles invalid
+// file paths as expected.
 func TestLoadConfigAndSensors(t *testing.T) {
 	// Define the path to the external JSON configuration file.
 	configFilePath := filepath.Join("..", "configs", "test_sensors.json")
@@ -34,6 +40,9 @@ func TestLoadConfigAndSensors(t *testing.T) {
 	}
 }
 
+// TestGenerateTemperatureReadings tests the generation of temperature readings
+// for a given set of sensors and configuration. It verifies that the correct number
+// of readings are generated, and that the temperatures fall within the expected range.
 func TestGenerateTemperatureReadings(t *testing.T) {
 	sensors := []simulator.Sensor{
 		{
@@ -60,6 +69,7 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		Simulate:        true, // Use simulate mode to avoid actual sleeping
 	}
 
+	// Generate temperature readings.
 	data, err := simulator.GenerateTemperatureReadings(
 		sensors,
 		config.TotalReadings,
@@ -74,11 +84,13 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
+	// Verify the number of generated readings matches expectations.
 	expectedDataPoints := config.TotalReadings * len(sensors)
 	if len(data) != expectedDataPoints {
 		t.Errorf("Expected %d data points, got %d", expectedDataPoints, len(data))
 	}
 
+	// Verify the generated temperatures are within the allowed range.
 	for _, reading := range data {
 		tempValue := float64(reading.Temperature)
 		if tempValue < config.MinTemp || tempValue > config.MaxTemp {
@@ -87,6 +99,9 @@ func TestGenerateTemperatureReadings(t *testing.T) {
 	}
 }
 
+// TestSaveToJSON tests saving temperature readings to a JSON file.
+// It verifies that the data is correctly written to the file in the expected format
+// and that each line of the file corresponds to a valid JSON object.
 func TestSaveToJSON(t *testing.T) {
 	data := []simulator.TemperatureReading{
 		{
@@ -111,6 +126,7 @@ func TestSaveToJSON(t *testing.T) {
 		},
 	}
 
+	// Create a temporary file for testing.
 	tmpfile, err := os.CreateTemp("", "test_*.json")
 	if err != nil {
 		t.Fatal(err)
@@ -118,18 +134,19 @@ func TestSaveToJSON(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	tmpfile.Close()
 
+	// Save the data to the JSON file.
 	if err := simulator.SaveToJSON(data, tmpfile.Name()); err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	// Read the file and check content.
+	// Read the file and check the content.
 	contentBytes, err := os.ReadFile(tmpfile.Name())
 	if err != nil {
 		t.Fatal(err)
 	}
 	content := string(contentBytes)
 
-	// Split the content into lines.
+	// Split the content into lines and verify the number of lines matches the data.
 	lines := strings.Split(strings.TrimSpace(content), "\n")
 	if len(lines) != len(data) {
 		t.Errorf("Expected %d lines, got %d", len(data), len(lines))
