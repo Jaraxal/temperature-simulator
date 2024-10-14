@@ -17,7 +17,6 @@ $(BUILD_DIR)/$(APP_NAME): $(GO_FILES)
 	@echo "Building the application..."
 	@mkdir -p $(BUILD_DIR)
 	@go build -o $(BUILD_DIR)/$(APP_NAME)-cli ./cmd/cli/
-	@go build -o $(BUILD_DIR)/$(APP_NAME)-api ./cmd/api/
 	@echo "Build completed!"
 
 # Clean the build files
@@ -35,12 +34,6 @@ clean: ## Clean the binary and temporary files
 run-cli: build ## Run the application
 	@echo "Running the application..."
 	./$(BUILD_DIR)/$(APP_NAME)-cli
-
-# Run the api application
-.PHONY: run-api
-run-api: build ## Run the application
-	@echo "Running the application..."
-	./$(BUILD_DIR)/$(APP_NAME)-api
 
 # Run tests
 .PHONY: test

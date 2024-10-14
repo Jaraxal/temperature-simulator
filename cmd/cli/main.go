@@ -15,7 +15,7 @@ func main() {
 	sensorConfigFile := flag.String("sensor_config", "configs/sensors.json", "Path to the sensor configuration JSON file")
 	logLevel := flag.String("log_level", "info", "Log level (debug, info, warn, error)")
 	logOutput := flag.String("log_output", "", "Log output ('stdout' or file path), overrides config file log path")
-	outputFile := flag.String("output", "", "Output file for temperature readings, overrides config file output file")
+	outputFile := flag.String("output_file", "", "Output file for temperature readings, overrides config file output file")
 	flag.Parse()
 
 	// Load the configuration and sensors from the JSON file.
